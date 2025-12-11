@@ -1,4 +1,6 @@
 use clap::{Parser, Subcommand};
+use std::fs::{self, File};
+use std::io::{self, BufRead, BufReader};
 
 const VERSION: &str = "\
 \n<------------------------------>
@@ -46,11 +48,19 @@ fn main() {
 
     match args.command {
         Commands::Read { file, line } => {
-            println!("Reading {}", file);
-            if let Some(l) = line {
-                println!("Reading at line {}", l);
+            if let Some(n) = line {
+                let f = File::open(&file).expect("Error, unable to open file!");
+                let reader = BufReader::new(f);
+
+                #[allow(unused_variables)]
+                match reader.lines().nth(n - 1) {
+                    Some(Ok(content)) => println!("{}", content),
+                    Some(Err(e)) => eprintln!("Error reading line {} -> {}", n, e),
+                    none => eprintln!("Error, line {} out of range.", n),
+                }
             } else {
-                println!("Reading");
+                let contents = fs::read_to_string(file).expect("Error, unable to read file!");
+                println!("{}", contents);
             }
         }
 
