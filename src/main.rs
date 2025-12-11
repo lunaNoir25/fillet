@@ -1,7 +1,17 @@
 use clap::{Parser, Subcommand};
 
+const VERSION: &str = "\
+\n<------------------------------>
+Fillet - v0.1.0
+Copyright (c) 2025 Luna Moonlit Noir
+
+A command line file editor and organizer tool.
+Made for a school project. TwT
+<------------------------------->
+";
+
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version = VERSION, about, long_about = None)]
 struct Args {
     #[command(subcommand)]
     pub command: Commands,
