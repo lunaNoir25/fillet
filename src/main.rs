@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use std::fs::{self, File};
-use std::io::{self, BufRead, BufReader};
+use std::io::{BufRead, BufReader};
 
 const VERSION: &str = "\
 \n<------------------------------>
@@ -8,7 +8,6 @@ Fillet - v0.1.0
 Copyright (c) 2025 Luna Moonlit Noir
 
 A command line file editor and organizer tool.
-Made for a school project. TwT
 <------------------------------->
 ";
 
@@ -21,24 +20,30 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
+    /// Read and print the contents of a file.
     Read {
         file: String,
 
         #[arg(short, long)]
+        /// Read a specific line.
         line: Option<usize>,
     },
 
+    /// Write to a file.
     Write {
         file: String,
         content: String,
 
         #[arg(short, long)]
+        /// Replace the entire contents of the file.
         overwrite: bool,
 
         #[arg(short, long)]
+        /// Add to the end of the file.
         append: bool,
 
         #[arg(short, long)]
+        /// Replace a specific line.
         line: Option<usize>,
     },
 }
