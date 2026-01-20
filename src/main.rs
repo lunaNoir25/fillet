@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
-use std::fs::{self, File};
-use std::io::{BufRead, BufReader};
+use std::fs::{self, File, OpenOptions};
+use std::io::{BufRead, BufReader, Write};
 
 const VERSION: &str = "\
 \n<------------------------------>
@@ -76,15 +76,52 @@ fn main() {
             append,
             line,
         } => {
-            println!("Writing to {}", file);
-            println!("Content: {}", content);
-
             if let Some(l) = line {
-                println!("Write at line {}", l);
+                let content_str = fs::read_to_string(&file).unwrap_or_else(|e| {
+                    eprintln!("Error, unable to read file '{}': {}", &file, e);
+                    std::process::exit(1);
+                });
+                let mut lines: Vec<String> = content_str.lines().map(str::to_string).collect();
+
+                if l == 0 || l > lines.len() {
+                    eprintln!("Error, line {} is out of range.", l);
+                    std::process::exit(1);
+                }
+
+                lines[l - 1] = content;
+                let updated_content = lines.join("\n");
+                fs::write(&file, updated_content).unwrap_or_else(|e| {
+                    eprintln!("Error, unable to write to file '{}': {}", &file, e);
+                    std::process::exit(1);
+                });
             } else if overwrite {
-                println!("Overwrite");
+                let result = OpenOptions::new()
+                    .write(true)
+                    .create(true)
+                    .truncate(true)
+                    .open(file);
+
+                match result {
+                    Ok(mut ffile) => {
+                        if let Err(e) = write!(ffile, "{}", content) {
+                            eprintln!("Error, unable to write to file: {}", e);
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Error, unable to open file: {}", e);
+                    }
+                }
             } else if append {
-                println!("Append");
+                match OpenOptions::new().append(true).create(true).open(&file) {
+                    Ok(mut ffile) => {
+                        if let Err(e) = write!(ffile, "\n{}", content) {
+                            eprintln!("Failed to write to file: {}", e);
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Error, could not open '{}' for appending: {}", &file, e);
+                    }
+                }
             } else {
                 eprintln!("Error, missing argument for write.");
             }
